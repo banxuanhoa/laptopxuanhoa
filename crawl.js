@@ -161,7 +161,7 @@ const browser = await puppeteer.launch({
   })
 );
 
-let all = results.flat();
+const all = results.flat();
 
   all = all.map(p=>{
     let price = normalizePrice(p.raw);
