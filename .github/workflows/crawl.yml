@@ -2,7 +2,7 @@ name: Crawl Zalo
 
 on:
   schedule:
-    - cron: "0 */6 * * *"   # chạy mỗi 6 giờ
+    - cron: "0 */24 * * *"   # chạy mỗi 6 giờ
   workflow_dispatch:        # cho phép chạy tay
 
 jobs:
