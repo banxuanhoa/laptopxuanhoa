@@ -1,31 +1,47 @@
 name: Crawl Zalo
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   schedule:
     - cron: "0 */24 * * *"
   workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   crawl:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node 24
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24
 
-      - name: Install dependencies
+      - name: Install Chromium deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+          ca-certificates fonts-liberation libasound2 \
+          libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 \
+          libcups2 libdbus-1-3 libexpat1 libfontconfig1 \
+          libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 \
+          libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 \
+          libstdc++6 libx11-6 libx11-xcb1 libxcb1 \
+          libxcomposite1 libxcursor1 libxdamage1 libxext6 \
+          libxfixes3 libxi6 libxrandr2 libxrender1 \
+          libxss1 libxtst6 lsb-release wget xdg-utils
+
+      - name: Install Puppeteer
         run: npm install puppeteer --unsafe-perm=true
 
-      - name: Run crawler
+      - name: Run Crawl
         run: node crawl.js
 
-      - name: Commit & push
+      - name: Commit JSON
         run: |
           git config --global user.name "bot"
           git config --global user.email "bot@example.com"
