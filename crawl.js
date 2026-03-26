@@ -115,7 +115,9 @@ function detectBrand(name){
 
   const links = txt.split("\n").filter(x=>x.trim());
 
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+  args: ["--no-sandbox", "--disable-setuid-sandbox"]
+});
   const page = await browser.newPage();
 
   let all=[];
