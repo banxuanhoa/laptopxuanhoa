@@ -1,5 +1,5 @@
 const fs = require("fs");
-const puppeteer = require("puppeteer");
+
 const crypto = require("crypto");
 
 const RAM_VALUES = [4,8,12,16,32,64];
@@ -115,37 +115,53 @@ function detectBrand(name){
 
   const links = txt.split("\n").filter(x=>x.trim());
 
-  const browser = await puppeteer.launch({
-  args: ["--no-sandbox", "--disable-setuid-sandbox"]
+  const puppeteer = require("puppeteer-core");
+
+const browser = await puppeteer.launch({
+  executablePath: "/usr/bin/chromium-browser",
+  args: [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu"
+  ]
 });
   const page = await browser.newPage();
 
   let all=[];
 
-  for(let link of links){
-    await page.goto(link,{waitUntil:"networkidle2"});
-    await page.waitForTimeout(3000);
+  const results = await Promise.all(
+  links.map(async (link) => {
+    const page = await browser.newPage();
+    await page.goto(link, { waitUntil: "domcontentloaded" });
+	await page.setRequestInterception(true);
+	page.on("request", (req) => {
+	  if (req.resourceType() === "image") req.abort();
+	  else req.continue();
+	});
+    let data = await page.evaluate(() => {
+      let arr = [];
+      document.querySelectorAll("a").forEach(el => {
+        let name = el.innerText;
+        let img = el.querySelector("img")?.src;
 
-    let data = await page.evaluate(()=>{
-      let arr=[];
-      document.querySelectorAll("a").forEach(el=>{
-        let name=el.innerText;
-        let img=el.querySelector("img")?.src;
-
-        if(name && img){
+        if (name && img) {
           arr.push({
             name,
             img,
-            raw:name,
-            link:el.href
+            link: el.href
           });
         }
       });
       return arr;
     });
 
-    all=all.concat(data);
-  }
+    await page.close();
+    return data;
+  })
+);
+
+let all = results.flat();
 
   all = all.map(p=>{
     let price = normalizePrice(p.raw);
