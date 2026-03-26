@@ -2,32 +2,32 @@ name: Crawl Zalo
 
 on:
   schedule:
-    - cron: "0 */24 * * *"   # chạy mỗi 6 giờ
-  workflow_dispatch:        # cho phép chạy tay
+    - cron: "0 */24 * * *"
+  workflow_dispatch:
 
 jobs:
   crawl:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clone repo
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Cài NodeJS
-        uses: actions/setup-node@v3
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
-      - name: Cài puppeteer
-        run: npm install puppeteer
+      - name: Install dependencies
+        run: npm install puppeteer --unsafe-perm=true
 
-      - name: Chạy crawl
+      - name: Run crawler
         run: node crawl.js
 
-      - name: Commit file JSON
+      - name: Commit & push
         run: |
           git config --global user.name "bot"
           git config --global user.email "bot@example.com"
           git add products.json
-          git commit -m "update data" || echo "No change"
+          git commit -m "update data" || echo "No changes"
           git push
